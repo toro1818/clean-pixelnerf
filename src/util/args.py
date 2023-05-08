@@ -20,7 +20,7 @@ def parse_args():
     parser.add_argument("--gamma", type=float, default=1.00, help="learning rate decay factor")
     parser.add_argument("--datadir", "-D", type=str, default=None, help="Dataset directory")
     parser.add_argument("--ray_batch_size", "-R", type=int, default=128, help="Ray batch size")
-    parser.add_argument("--object_batch_size", "-B", type=int, default=4, help="Object batch size ('SB')")
+    parser.add_argument("--batch_size", "-B", type=int, default=4, help="Object batch size ('SB')")
     parser.add_argument("--nviews","-V",type=str,default="1",
         help="Number of source views (multiview); put multiple (space delim) to pick randomly per batch ('NV')")
     parser.add_argument("--freeze_enc",action="store_true",default=None,help="Freeze encoder weights and only train MLP")

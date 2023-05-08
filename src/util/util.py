@@ -251,15 +251,16 @@ def gen_rays(poses, width, height, focal, z_near, z_far, c=None, ndc=False):
     cam_raydir = torch.matmul(
         poses[:, None, None, :3, :3], cam_unproj_map.unsqueeze(-1)
     )[:, :, :, :, 0]
-    if ndc:
-        if not (z_near == 0 and z_far == 1):
-            warnings.warn(
-                "dataset z near and z_far not compatible with NDC, setting them to 0, 1 NOW"
-            )
-        z_near, z_far = 0.0, 1.0
-        cam_centers, cam_raydir = ndc_rays(
-            width, height, focal, 1.0, cam_centers, cam_raydir
-        )
+    # ±®¥Ì£¨œ»◊¢ Õ¡À TODO
+    # if ndc:
+    #     if not (z_near == 0 and z_far == 1):
+    #         warnings.warn(
+    #             "dataset z near and z_far not compatible with NDC, setting them to 0, 1 NOW"
+    #         )
+    #     z_near, z_far = 0.0, 1.0
+    #     cam_centers, cam_raydir = ndc_rays(
+    #         width, height, focal, 1.0, cam_centers, cam_raydir
+    #     )
 
     cam_nears = (
         torch.tensor(z_near, device=device)

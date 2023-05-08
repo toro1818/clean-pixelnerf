@@ -18,33 +18,26 @@ class PixelNeRFNet(torch.nn.Module):
         :param conf PyHocon config subtree 'model'
         """
         super().__init__()
+        # 1.normal
+        self.use_xyz = conf.get_bool("use_xyz", False)
+        self.use_viewdirs = conf.get_bool("use_viewdirs", False)
+        # 2.image encoder
         self.encoder = make_encoder(conf["encoder"])
         self.use_encoder = conf.get_bool("use_encoder", True)  # Image features?
 
-        self.use_xyz = conf.get_bool("use_xyz", False)
-
         assert self.use_encoder or self.use_xyz  # Must use some feature..
-
-        # Whether to shift z to align in canonical frame.
-        # So that all objects, regardless of camera distance to center, will
-        # be centered at z=0.
-        # Only makes sense in ShapeNet-type setting.
-        self.normalize_z = conf.get_bool("normalize_z", True)
 
         self.stop_encoder_grad = (
             stop_encoder_grad  # Stop ConvNet gradient (freeze weights)
         )
+        self.use_global_encoder = conf.get_bool("use_global_encoder", False)  # Global image features?
+        # 3.position encoder
         self.use_code = conf.get_bool("use_code", False)  # Positional encoding
         self.use_code_viewdirs = conf.get_bool(
             "use_code_viewdirs", True
         )  # Positional encoding applies to viewdirs
 
-        # Enable view directions
-        self.use_viewdirs = conf.get_bool("use_viewdirs", False)
-
-        # Global image features?
-        self.use_global_encoder = conf.get_bool("use_global_encoder", False)
-
+        # 4.mlp
         d_latent = self.encoder.latent_size if self.use_encoder else 0
         d_in = 3 if self.use_xyz else 1
 
@@ -87,13 +80,12 @@ class PixelNeRFNet(torch.nn.Module):
         self.num_objs = 0
         self.num_views_per_obj = 1
 
-    def encode(self, images, poses, focal, z_bounds=None, c=None):
+    def encode(self, images, poses, focal, c=None):
         """
         :param images (NS, 3, H, W)
         NS is number of input (aka source or reference) views
         :param poses (NS, 4, 4)
         :param focal focal length () or (2) or (NS) or (NS, 2) [fx, fy]
-        :param z_bounds ignored argument (used in the past)
         :param c principal point None or () or (2) or (NS) or (NS, 2) [cx, cy],
         default is center of image
         """
@@ -168,15 +160,9 @@ class PixelNeRFNet(torch.nn.Module):
             if self.d_in > 0:
                 # * Encode the xyz coordinates
                 if self.use_xyz:
-                    if self.normalize_z:
-                        z_feature = xyz_rot.reshape(-1, 3)  # (SB*B, 3)
-                    else:
-                        z_feature = xyz.reshape(-1, 3)  # (SB*B, 3)
+                    z_feature = xyz.reshape(-1, 3)  # (SB*B, 3)
                 else:
-                    if self.normalize_z:
-                        z_feature = -xyz_rot[..., 2].reshape(-1, 1)  # (SB*B, 1)
-                    else:
-                        z_feature = -xyz[..., 2].reshape(-1, 1)  # (SB*B, 1)
+                    z_feature = -xyz[..., 2].reshape(-1, 1)  # (SB*B, 1)
 
                 if self.use_code and not self.use_code_viewdirs:
                     # Positional encoding (no viewdirs)
@@ -212,7 +198,7 @@ class PixelNeRFNet(torch.nn.Module):
                     self.c.unsqueeze(1), NS if self.c.shape[0] > 1 else 1
                 )  # (SB*NS, B, 2)
                 latent = self.encoder.index(
-                    uv, None, self.image_shape
+                    uv, self.image_shape
                 )  # (SB * NS, latent, B)
 
                 if self.stop_encoder_grad:
@@ -291,9 +277,9 @@ class PixelNeRFNet(torch.nn.Module):
         elif not opt_init:
             warnings.warn(
                 (
-                    "WARNING: {} does not exist, not loaded!! Model will be re-initialized.\n"
-                    + "If you are trying to load a pretrained model, STOP since it's not in the right place. "
-                    + "If training, unless you are startin a new experiment, please remember to pass --resume."
+                        "WARNING: {} does not exist, not loaded!! Model will be re-initialized.\n"
+                        + "If you are trying to load a pretrained model, STOP since it's not in the right place. "
+                        + "If training, unless you are startin a new experiment, please remember to pass --resume."
                 ).format(model_path)
             )
         return self

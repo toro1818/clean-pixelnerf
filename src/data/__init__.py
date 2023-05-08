@@ -29,7 +29,7 @@ def get_split_dataset(dataset_type, datadir, want_split="all", training=True, **
         flags["z_far"] = 5.0
         # Apply color jitter during train
         train_aug = ColorJitterDataset
-        train_aug_flags = {"extra_inherit_attrs": ["sub_format"]}
+        # train_aug_flags = {"extra_inherit_attrs": ["sub_format"]}
     else:
         raise NotImplementedError("Unsupported dataset type", dataset_type)
 

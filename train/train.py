@@ -18,40 +18,7 @@ import torch
 from dotmap import DotMap
 
 
-def extra_args(parser):
-    parser.add_argument(
-        "--batch_size", "-B", type=int, default=4, help="Object batch size ('SB')"
-    )
-    parser.add_argument(
-        "--nviews",
-        "-V",
-        type=str,
-        default="1",
-        help="Number of source views (multiview); put multiple (space delim) to pick randomly per batch ('NV')",
-    )
-    parser.add_argument(
-        "--freeze_enc",
-        action="store_true",
-        default=None,
-        help="Freeze encoder weights and only train MLP",
-    )
-
-    parser.add_argument(
-        "--no_bbox_step",
-        type=int,
-        default=100000,
-        help="Step to stop using bbox sampling",
-    )
-    parser.add_argument(
-        "--fixed_test",
-        action="store_true",
-        default=None,
-        help="Freeze encoder weights and only train MLP",
-    )
-    return parser
-
-
-args, conf = util.args.parse_args(extra_args, training=True, default_ray_batch_size=128)
+args, conf = util.args.parse_args()
 device = util.get_cuda(args.gpu_id[0])
 
 dset, val_dset, _ = get_split_dataset(args.dataset_format, args.datadir)

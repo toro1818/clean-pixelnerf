@@ -37,7 +37,7 @@ class PixelNeRFNet(torch.nn.Module):
             "use_code_viewdirs", True
         )  # Positional encoding applies to viewdirs
 
-        # 4.mlp
+        # 4.mlp:  d_in是mlp输入维度，d_out是输出维度，d_latent是图片编码后的特征维度
         d_latent = self.encoder.latent_size if self.use_encoder else 0
         d_in = 3 if self.use_xyz else 1
 
@@ -62,9 +62,7 @@ class PixelNeRFNet(torch.nn.Module):
 
         self.latent_size = self.encoder.latent_size
         self.mlp_coarse = make_mlp(conf["mlp_coarse"], d_in, d_latent, d_out=d_out)
-        self.mlp_fine = make_mlp(
-            conf["mlp_fine"], d_in, d_latent, d_out=d_out, allow_empty=True
-        )
+        self.mlp_fine = make_mlp(conf["mlp_fine"], d_in, d_latent, d_out=d_out, allow_empty=True)
         # Note: this is world -> camera, and bottom row is omitted
         # saved in model.state_dict but not update
         self.register_buffer("poses", torch.empty(1, 3, 4), persistent=False)

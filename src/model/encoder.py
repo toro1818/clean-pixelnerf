@@ -2,6 +2,7 @@
 Implements image encoders
 """
 import torch
+import torchvision
 from torch import nn
 import torch.nn.functional as F
 import torch.autograd.profiler as profiler

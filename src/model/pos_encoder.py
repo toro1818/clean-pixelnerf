@@ -43,7 +43,7 @@ class PositionalEncoding(torch.nn.Module):
 
     @classmethod
     def from_conf(cls, conf, d_in=3):
-        # PyHocon construction
+        # PyHocon construction 不得不说这样写真的实验起来很方便
         return cls(
             conf.get_int("num_freqs", 6),
             d_in,
